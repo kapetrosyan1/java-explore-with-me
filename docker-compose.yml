@@ -23,10 +23,10 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_DB=exploreWithMeStats
 
-  main-service:
-    build: main-service
-    image: main-service-image
-    container_name: main-service-container
+  ewm-service:
+    build: ewm-service
+    image: ewm-service-image
+    container_name: ewm-service-container
     ports:
       - "8080:8080"
     depends_on:
