@@ -9,7 +9,7 @@ services:
     depends_on:
       - stats-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/exploreWithMeStats
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/exploreWithMeStats
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
