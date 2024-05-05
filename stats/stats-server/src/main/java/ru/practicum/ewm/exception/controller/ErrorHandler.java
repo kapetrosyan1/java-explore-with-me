@@ -19,9 +19,9 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleException(final Exception e) {
-        log.warn("Internal Server Error:", e);
+        log.warn("Bad request:", e);
         return new ErrorResponse(e.getMessage());
     }
 }
