@@ -7,7 +7,6 @@ import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.dto.NewEventDto;
-import ru.practicum.ewm.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.enums.State;
 import ru.practicum.ewm.user.dto.mapper.UserMapper;

@@ -1,7 +1,7 @@
 package ru.practicum.ewm.exception.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,12 +78,12 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handlePSQLException(final PSQLException e) {
+    public ApiError handleDataIntegrityException(final DataIntegrityViolationException e) {
         log.warn("CONFLICT:", e);
         List<String> errors = Arrays.stream(e.getStackTrace())
                 .map(StackTraceElement::toString)
                 .collect(Collectors.toList());
-        return new ApiError(errors, e.getMessage(), "Database constraint violation", "CONFLICT",
+        return new ApiError(errors, e.getMessage(), "DATA INTEGRITY VIOLATION", "CONFLICT",
                 LocalDateTime.now());
     }
 }

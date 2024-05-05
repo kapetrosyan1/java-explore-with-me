@@ -25,8 +25,8 @@ public class StatsServerController {
     @GetMapping("/stats")
     public List<EndpointHitsDto> getHits(@RequestParam String start,
                                          @RequestParam String end,
-                                         @RequestParam (required = false) List<String> uris,
-                                         @RequestParam (defaultValue = "false") Boolean unique) {
+                                         @RequestParam(required = false) List<String> uris,
+                                         @RequestParam(defaultValue = "false") Boolean unique) {
         log.info("StatServerController: запрос на получение информации о просмотрах за период с {} по {}, uris = {}," +
                 "unique = {}", start, end, uris, unique);
         return service.getHits(start, end, uris, unique);

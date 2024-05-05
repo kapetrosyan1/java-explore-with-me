@@ -69,7 +69,7 @@ public class PrivateEventController {
     public EventRequestStatusUpdateResult responseToRequests(@PathVariable @Positive Long userId,
                                                              @PathVariable @Positive Long eventId,
                                                              @RequestBody @Valid
-                                                                 EventRequestStatusUpdateRequest updateRequest) {
+                                                             EventRequestStatusUpdateRequest updateRequest) {
         log.info("PrivateEventController: PATCH запрос по endpoint /users/{userId}/events/{eventId}/requests");
         return requestService.updateRequestStatus(userId, eventId, updateRequest);
     }

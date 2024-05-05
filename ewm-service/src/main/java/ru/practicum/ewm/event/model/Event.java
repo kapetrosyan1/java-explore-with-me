@@ -6,12 +6,15 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.event.model.enums.State;
 import ru.practicum.ewm.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "events")
@@ -52,6 +55,8 @@ public class Event {
     private LocalDateTime created;
     @Enumerated(EnumType.STRING)
     private State state;
+    @ManyToMany(mappedBy = "events")
+    Set<Compilation> compilations = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
