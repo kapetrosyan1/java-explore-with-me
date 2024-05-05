@@ -1,6 +1,7 @@
 package ru.practicum.ewm;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,8 +19,8 @@ import java.util.List;
 public class StatsClient {
     private final WebClient webClient;
 
-    public StatsClient() {
-        webClient = WebClient.create("http://localhost:9090");
+    public StatsClient(@Value("${stats-server.url}") String baseUrl) {
+        this.webClient = WebClient.create(baseUrl);
     }
 
     public EndpointRequestDto create(EndpointRequestDto requestDto) {
