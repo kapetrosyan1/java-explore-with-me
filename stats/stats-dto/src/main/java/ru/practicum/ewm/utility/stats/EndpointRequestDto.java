@@ -14,10 +14,10 @@ public class EndpointRequestDto {
     @Size(max = 255)
     private String app;
     @NotBlank
-    @Size(max = 255)
+    @Size(max = 2048)
     private String uri;
     @NotBlank
-    @Size(max = 16)
+    @Size(max = 45)
     private String ip;
     @NotBlank
     private String timestamp;

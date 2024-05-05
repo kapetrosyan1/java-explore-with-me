@@ -1,7 +1,8 @@
-package ru.practicum.ewm.user.participation.request.model.enums;
+package ru.practicum.ewm.participation.request.model.enums;
 
 public enum ParticipationStatus {
     PENDING,
     REJECTED,
-    CONFIRMED
+    CONFIRMED,
+    CANCELED
 }
