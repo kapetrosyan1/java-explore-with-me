@@ -7,6 +7,8 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.practicum.ewm.Constant.DATE_TIME_FORMAT;
+
 @AllArgsConstructor
 @Data
 public class ApiError {
@@ -14,6 +16,6 @@ public class ApiError {
     private String message;
     private String reason;
     private String status;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_FORMAT)
     private LocalDateTime timestamp;
 }
