@@ -1,6 +1,5 @@
 package ru.practicum.ewm.compilation.dto.mapper;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
 import ru.practicum.ewm.compilation.dto.NewCompilationDto;
@@ -11,10 +10,9 @@ import ru.practicum.ewm.event.model.Event;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@UtilityClass
 @Slf4j
 public class CompilationMapper {
-    public Compilation fromNewCompDto(NewCompilationDto newCompilationDto, Set<Event> eventSet) {
+    public static Compilation fromNewCompDto(NewCompilationDto newCompilationDto, Set<Event> eventSet) {
         log.info("CompilationMapper: конвертация NewCompilationDto в Compilation");
         Compilation compilation = new Compilation();
         compilation.setEvents(eventSet);
@@ -23,7 +21,7 @@ public class CompilationMapper {
         return compilation;
     }
 
-    public CompilationDto toCompilationDto(Compilation compilation) {
+    public static CompilationDto toCompilationDto(Compilation compilation) {
         log.info("CompilationMapper: конвертация Compilation в CompilationDto");
         CompilationDto compilationDto = new CompilationDto();
         compilationDto.setId(compilation.getId());

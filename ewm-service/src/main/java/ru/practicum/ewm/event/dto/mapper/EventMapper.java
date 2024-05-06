@@ -1,6 +1,5 @@
 package ru.practicum.ewm.event.dto.mapper;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import ru.practicum.ewm.category.dto.mapper.CategoryMapper;
 import ru.practicum.ewm.category.model.Category;
@@ -12,10 +11,9 @@ import ru.practicum.ewm.event.model.enums.State;
 import ru.practicum.ewm.user.dto.mapper.UserMapper;
 import ru.practicum.ewm.user.model.User;
 
-@UtilityClass
 @Slf4j
 public class EventMapper {
-    public Event fromNewEventDto(NewEventDto eventDto, User initiator, Category category) {
+    public static Event fromNewEventDto(NewEventDto eventDto, User initiator, Category category) {
         log.info("EventMapper: конвертация NewEventDto в Event");
         Event event = new Event();
         event.setAnnotation(eventDto.getAnnotation());
@@ -32,7 +30,7 @@ public class EventMapper {
         return event;
     }
 
-    public EventFullDto toEventFullDto(Event event) {
+    public static EventFullDto toEventFullDto(Event event) {
         log.info("EventMapper: конвертация Event в EventFullDto");
         EventFullDto eventDto = new EventFullDto();
         eventDto.setAnnotation(event.getAnnotation());
@@ -53,7 +51,7 @@ public class EventMapper {
         return eventDto;
     }
 
-    public EventShortDto toEventShortDto(Event event) {
+    public static EventShortDto toEventShortDto(Event event) {
         log.info("EventMapper: конвертация Event в EventShortDto");
         EventShortDto shortDto = new EventShortDto();
         shortDto.setAnnotation(event.getAnnotation());

@@ -1,22 +1,19 @@
 package ru.practicum.ewm.event.dto;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.experimental.FieldDefaults;
 import ru.practicum.ewm.event.model.enums.State;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SearchFilter {
-    List<Long> initiators;
-    List<State> states;
-    String text;
-    List<Long> categories;
-    Boolean paid;
-    LocalDateTime rangeStart;
-    LocalDateTime rangeEnd;
-    Boolean onlyAvailable = false;
+    private List<Long> initiators;
+    private List<State> states;
+    private String text;
+    private List<Long> categories;
+    private Boolean paid;
+    private LocalDateTime rangeStart;
+    private LocalDateTime rangeEnd;
+    private Boolean onlyAvailable = false;
 }

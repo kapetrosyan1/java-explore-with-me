@@ -1,7 +1,6 @@
 package ru.practicum.ewm.participation.request.model;
 
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.participation.request.model.enums.ParticipationStatus;
@@ -16,23 +15,22 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ParticipationRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
     @CreationTimestamp
-    LocalDateTime created;
+    private LocalDateTime created;
     @ManyToOne
     @JoinColumn(name = "event_id")
     @ToString.Exclude
-    Event event;
+    private Event event;
     @ManyToOne
     @JoinColumn(name = "requester_id")
     @ToString.Exclude
-    User requester;
+    private User requester;
     @Enumerated(EnumType.STRING)
-    ParticipationStatus status;
+    private ParticipationStatus status;
 
     @Override
     public boolean equals(Object o) {
