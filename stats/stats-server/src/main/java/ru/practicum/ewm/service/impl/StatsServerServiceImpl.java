@@ -23,32 +23,33 @@ import java.util.List;
 public class StatsServerServiceImpl implements StatsServerService {
 
     private final JpaStatsServerRepository repository;
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public EndpointRequestDto create(EndpointRequestDto requestDto) {
         log.info("StatsServerServiceImpl: сохранение в историю обращения {}", requestDto.toString());
-        EndpointHit endpointHit = EndpointDtoMapper.toEndpointHit(requestDto, FORMATTER);
-        return EndpointDtoMapper.toEndpointRequestDto(repository.save(endpointHit), FORMATTER);
+
+        EndpointHit endpointHit = EndpointDtoMapper.toEndpointHit(requestDto, formatter);
+        return EndpointDtoMapper.toEndpointRequestDto(repository.save(endpointHit), formatter);
     }
 
     @Override
-    public List<EndpointHitsDto> getHits(String start, String end, String[] uris, Boolean isUnique) {
+    public List<EndpointHitsDto> getHits(String start, String end, List<String> uris, Boolean isUnique) {
         log.info("StatsServerServiceImpl: обработка запроса на получение статистики за период с {} по {}, uris = {}, " +
                 "unique = {}", start, end, uris, isUnique);
-        LocalDateTime startTime = LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8), FORMATTER);
-        LocalDateTime endTime = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8), FORMATTER);
+        LocalDateTime startTime = LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8), formatter);
+        LocalDateTime endTime = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8), formatter);
 
         if (endTime.isBefore(startTime)) {
             throw new BadRequestException("Стартовая дата диапазона не может быть после конечной даты");
         }
 
-        if (uris == null || uris.length == 0) {
+        if (uris == null || uris.size() == 0) {
             return isUnique ? repository.findDistinctHitsWithNoUrisList(startTime, endTime) :
                     repository.findHitsWithNoUrisList(startTime, endTime);
         } else {
-            return isUnique ? repository.findDistinctHitsWithUrisList(startTime, endTime, List.of(uris)) :
-                    repository.findHitsWithUrisList(startTime, endTime, List.of(uris));
+            return isUnique ? repository.findDistinctHitsWithUrisList(startTime, endTime, uris) :
+                    repository.findHitsWithUrisList(startTime, endTime, uris);
         }
     }
 }

@@ -15,16 +15,16 @@ public interface JpaStatsServerRepository extends JpaRepository<EndpointHit, Lon
             "WHERE eh.created BETWEEN :start AND :end " +
             "GROUP BY eh.uri, eh.app " +
             "ORDER BY count(eh.ip) desc")
-    public List<EndpointHitsDto> findHitsWithNoUrisList(@Param("start") LocalDateTime start,
-                                                        @Param("end") LocalDateTime end);
+    List<EndpointHitsDto> findHitsWithNoUrisList(@Param("start") LocalDateTime start,
+                                                 @Param("end") LocalDateTime end);
 
     @Query("SELECT new ru.practicum.ewm.utility.stats.EndpointHitsDto(eh.app, eh.uri, count(distinct eh.ip)) " +
             "from EndpointHit AS eh " +
             "WHERE eh.created BETWEEN :start AND :end " +
             "GROUP BY eh.uri, eh.app " +
             "ORDER BY count(distinct eh.ip) desc")
-    public List<EndpointHitsDto> findDistinctHitsWithNoUrisList(@Param("start") LocalDateTime start,
-                                                                @Param("end") LocalDateTime end);
+    List<EndpointHitsDto> findDistinctHitsWithNoUrisList(@Param("start") LocalDateTime start,
+                                                         @Param("end") LocalDateTime end);
 
     @Query("SELECT new ru.practicum.ewm.utility.stats.EndpointHitsDto(eh.app, eh.uri, count(eh.ip)) " +
             "FROM EndpointHit AS eh " +
@@ -32,9 +32,9 @@ public interface JpaStatsServerRepository extends JpaRepository<EndpointHit, Lon
             "eh.uri IN :uris " +
             "GROUP BY eh.uri, eh.app " +
             "ORDER BY count(eh.ip) desc")
-    public List<EndpointHitsDto> findHitsWithUrisList(@Param("start") LocalDateTime start,
-                                                      @Param("end") LocalDateTime end,
-                                                      @Param("uris") List<String> uris);
+    List<EndpointHitsDto> findHitsWithUrisList(@Param("start") LocalDateTime start,
+                                               @Param("end") LocalDateTime end,
+                                               @Param("uris") List<String> uris);
 
     @Query("SELECT new ru.practicum.ewm.utility.stats.EndpointHitsDto(eh.app, eh.uri, count(distinct eh.ip)) " +
             "FROM EndpointHit AS eh " +
@@ -42,7 +42,7 @@ public interface JpaStatsServerRepository extends JpaRepository<EndpointHit, Lon
             "eh.uri IN :uris " +
             "GROUP BY eh.uri, eh.app " +
             "ORDER BY count(distinct eh.ip) desc")
-    public List<EndpointHitsDto> findDistinctHitsWithUrisList(@Param("start") LocalDateTime start,
-                                                              @Param("end") LocalDateTime end,
-                                                              @Param("uris") List<String> uris);
+    List<EndpointHitsDto> findDistinctHitsWithUrisList(@Param("start") LocalDateTime start,
+                                                       @Param("end") LocalDateTime end,
+                                                       @Param("uris") List<String> uris);
 }
