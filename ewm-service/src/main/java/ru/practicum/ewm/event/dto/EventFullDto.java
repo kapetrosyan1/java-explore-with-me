@@ -3,11 +3,14 @@ package ru.practicum.ewm.event.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import ru.practicum.ewm.category.dto.CategoryDto;
+import ru.practicum.ewm.event.comment.dto.CommentResultDto;
 import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.event.model.enums.State;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static ru.practicum.ewm.Constant.DATE_TIME_FORMAT;
 
@@ -32,4 +35,5 @@ public class EventFullDto {
     private State state;
     private String title;
     private long views;
+    private List<CommentResultDto> comments = new ArrayList<>();
 }

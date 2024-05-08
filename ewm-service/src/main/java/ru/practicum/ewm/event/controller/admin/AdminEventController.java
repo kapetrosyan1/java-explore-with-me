@@ -3,6 +3,7 @@ package ru.practicum.ewm.event.controller.admin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventFullDto;
@@ -45,5 +46,12 @@ public class AdminEventController {
                                            @RequestBody @Valid UpdateEventAdminRequest adminRequest) {
         log.info("AdminEventController: PATCH запрос по endpoint /admin/events/{}", eventId);
         return eventService.adminUpdateEvent(eventId, adminRequest);
+    }
+
+    @DeleteMapping("/comments/delete/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCommentByAdmin(@PathVariable @Positive Long commentId) {
+        log.info("AdminEventController: DELETE запрос по endpoint /admin/events/comments/delete/{commentId}");
+        eventService.adminDeleteComment(commentId);
     }
 }

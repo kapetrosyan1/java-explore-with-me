@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.event.comment.dto.CommentResultDto;
+import ru.practicum.ewm.event.comment.dto.NewCommentDto;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.dto.NewEventDto;
@@ -72,5 +74,30 @@ public class PrivateEventController {
                                                              EventRequestStatusUpdateRequest updateRequest) {
         log.info("PrivateEventController: PATCH запрос по endpoint /users/{userId}/events/{eventId}/requests");
         return requestService.updateRequestStatus(userId, eventId, updateRequest);
+    }
+
+    @PostMapping("/{eventId}/comments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentResultDto createComment(@PathVariable @Positive Long userId,
+                                          @PathVariable @Positive Long eventId,
+                                          @RequestBody @Valid NewCommentDto newCommentDto) {
+        log.info("PrivateEventController: POST запрос по endpoint /users/{userId}/events/{eventId}/requests");
+        return eventService.privateCreateComment(newCommentDto, userId, eventId);
+    }
+
+    @PatchMapping("/comments/{commentId}")
+    public CommentResultDto updateComment(@PathVariable @Positive Long userId,
+                                          @PathVariable @Positive Long commentId,
+                                          @RequestBody @Valid NewCommentDto newCommentDto) {
+        log.info("PrivateEventController: PATCH запрос по endpoint /users/{userId}/events/comments/{commentId}");
+        return eventService.privateUpdateComment(newCommentDto, commentId, userId);
+    }
+
+    @DeleteMapping("/comments/delete/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCommentByAuthor(@PathVariable @Positive Long userId,
+                                      @PathVariable @Positive Long commentId) {
+        log.info("PrivateEventController: DELETE запрос по endpoint /users/{userId}/events/comments/delete/{commentId}");
+        eventService.privateDeleteComment(userId, commentId);
     }
 }

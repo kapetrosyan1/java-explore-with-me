@@ -12,6 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.StatsClient;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.JpaCategoryRepository;
+import ru.practicum.ewm.event.comment.dto.CommentResultDto;
+import ru.practicum.ewm.event.comment.dto.NewCommentDto;
+import ru.practicum.ewm.event.comment.dto.mapper.CommentMapper;
+import ru.practicum.ewm.event.comment.model.Comment;
+import ru.practicum.ewm.event.comment.repository.JpaCommentRepository;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.dto.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
@@ -21,6 +26,7 @@ import ru.practicum.ewm.event.model.enums.State;
 import ru.practicum.ewm.event.model.enums.UserStateAction;
 import ru.practicum.ewm.event.repository.JpaEventRepository;
 import ru.practicum.ewm.event.service.EventService;
+import ru.practicum.ewm.event.service.impl.specification.EventSpecification;
 import ru.practicum.ewm.exception.exceptions.BadRequestException;
 import ru.practicum.ewm.exception.exceptions.ForbiddenException;
 import ru.practicum.ewm.exception.exceptions.NotFoundException;
@@ -35,10 +41,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static ru.practicum.ewm.Constant.DATE_TIME_FORMAT;
 
@@ -51,6 +58,8 @@ public class EventServiceImpl implements EventService {
     private final JpaCategoryRepository categoryRepository;
     private final JpaUserRepository userRepository;
     private final StatsClient statsClient;
+    private final JpaCommentRepository commentRepository;
+    private final EventSpecification eventSpecification = new EventSpecification();
 
     @Override
     @Transactional
@@ -76,7 +85,7 @@ public class EventServiceImpl implements EventService {
         }
         return eventRepository.findAllByInitiatorId(userId, pageable).getContent().stream()
                 .map(EventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -129,7 +138,7 @@ public class EventServiceImpl implements EventService {
         filter.setRangeStart(rangeStart);
         filter.setRangeEnd(rangeEnd);
         Pageable pageable = getPageRequest(from, size, null);
-        List<Specification<Event>> specifications = adminGetSpecifications(filter);
+        List<Specification<Event>> specifications = eventSpecification.adminGetSpecifications(filter);
         Page<Event> eventPage = eventRepository.findAll(
                 specifications.stream().reduce(Specification::or).orElse(null), pageable);
         if (!eventPage.hasContent()) {
@@ -137,7 +146,7 @@ public class EventServiceImpl implements EventService {
         }
         return eventPage.getContent().stream()
                 .map(EventMapper::toEventFullDto)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -171,15 +180,20 @@ public class EventServiceImpl implements EventService {
         filter.setRangeEnd(rangeEnd);
         filter.setOnlyAvailable(onlyAvailable);
         Pageable pageable = getPageRequest(from, size, sort);
-        Page<Event> eventPage = eventRepository.findAll(
-                publicGetSpecifications(filter).stream().reduce(Specification::or).orElse(null), pageable);
+        Page<Event> eventPage = eventRepository.findAll(eventSpecification.publicGetSpecifications(filter).stream()
+                .reduce(Specification::or).orElse(null), pageable);
         if (!eventPage.hasContent()) {
             return new ArrayList<>();
         }
+        List<Event> events = eventPage.getContent();
+        Map<Long, List<Comment>> eventCommentMap = commentRepository.findByEventIn(events).stream()
+                .collect(groupingBy(comment -> comment.getEvent().getId(), toList()));
 
         List<EventShortDto> eventShortDtoList = eventPage.getContent().stream()
                 .map(EventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+                .peek(eventDto -> setComments(eventCommentMap, eventDto))
+                .collect(toList());
+
         setViews(eventShortDtoList);
         createHit(request);
         return eventShortDtoList;
@@ -192,11 +206,62 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException(
                     String.format("Событие с id=%d еще не опубликовано", eventId));
         }
+        List<CommentResultDto> comments = commentRepository.findByEventIn(List.of(event)).stream()
+                .map(CommentMapper::toCommentResultDto)
+                .collect(toList());
         EventFullDto fullDto = EventMapper.toEventFullDto(event);
+        fullDto.setComments(comments);
         String uri = request.getRequestURI();
         fullDto.setViews(getViewsForEvent(List.of(uri)));
         createHit(request);
         return fullDto;
+    }
+
+    @Override
+    @Transactional
+    public CommentResultDto privateCreateComment(NewCommentDto newCommentDto, Long authorId, Long eventId) {
+        log.info("EventService: добавление комментария от пользователя с id={} к событию с id={}", authorId, eventId);
+        User author = findUserByIdOrThrow(authorId);
+        Event event = findEventByIdOrThrow(eventId);
+        if (!event.getState().equals(State.PUBLISHED)) {
+            throw new ForbiddenException("Нельзя комментировать неопубликованные события");
+        }
+        return CommentMapper.toCommentResultDto(commentRepository.save(
+                CommentMapper.toComment(newCommentDto, author, event)));
+    }
+
+    @Override
+    @Transactional
+    public void privateDeleteComment(Long userId, Long commentId) {
+        log.info("EventService: удаление комментария с id={} от пользователя с id={}", commentId, userId);
+        Comment comment = findCommentByIdOrThrow(commentId);
+        checkUserIsAuthor(comment, userId);
+        commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    @Transactional
+    public void adminDeleteComment(Long commentId) {
+        log.info("EventService: удаление комментария с id={} администратором", commentId);
+        findCommentByIdOrThrow(commentId);
+        commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    public CommentResultDto publicFindCommentById(Long commentId) {
+        log.info("EventService: удаление комментария с id={} администратором", commentId);
+        Comment comment = findCommentByIdOrThrow(commentId);
+        return CommentMapper.toCommentResultDto(comment);
+    }
+
+    @Override
+    @Transactional
+    public CommentResultDto privateUpdateComment(NewCommentDto updateCommentDto, Long commentId, Long userId) {
+        log.info("EventService: обновление комментария с id={} пользователем с id={}", commentId, userId);
+        Comment comment = findCommentByIdOrThrow(commentId);
+        checkUserIsAuthor(comment, userId);
+        comment.setText(updateCommentDto.getText());
+        return CommentMapper.toCommentResultDto(commentRepository.save(comment));
     }
 
     private void checkInitiator(Event event, Long userId) {
@@ -209,6 +274,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private long getViewsForEvent(List<String> uris) {
+        log.info("EventService: выполнение метода getViewsForEvent");
         List<EndpointHitsDto> hitsList = statsClient.getHits(LocalDateTime.of(1970, 1, 1, 1, 1, 1),
                 LocalDateTime.now(), uris, true);
         if (hitsList.isEmpty()) {
@@ -303,6 +369,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private PageRequest getPageRequest(int from, int size, String sort) {
+        log.info("EventService: выполнение метода getPageRequest");
         int page = from / size;
         Sort sortBy;
         if (sort == null) {
@@ -317,82 +384,8 @@ public class EventServiceImpl implements EventService {
         return PageRequest.of(page, size, sortBy);
     }
 
-    private List<Specification<Event>> adminGetSpecifications(SearchFilter filter) {
-        List<Specification<Event>> specifications = new ArrayList<>();
-        specifications.add(filter.getInitiators() == null ? null : initiatorIdIn(filter.getInitiators()));
-        specifications.add(filter.getCategories() == null ? null : catIdsIn(filter.getCategories()));
-        specifications.add(filter.getStates() == null ? null : statesIn(filter.getStates()));
-        specifications.add(filter.getRangeStart() == null ? null : eventAfter(filter.getRangeStart()));
-        specifications.add(filter.getRangeEnd() == null ? null : eventBefore(filter.getRangeEnd()));
-        return specifications.stream().filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    private List<Specification<Event>> publicGetSpecifications(SearchFilter filter) {
-        List<Specification<Event>> specifications = new ArrayList<>();
-        specifications.add(eventIsPublished());
-        specifications.add(filter.getText() == null ? null : annotationOrDescriptionLike(filter.getText()));
-        specifications.add(filter.getCategories() == null ? null : catIdsIn(filter.getCategories()));
-        specifications.add(filter.getPaid() == null ? null : eventPaid(filter.getPaid()));
-        specifications.add(handleOnlyAvailable(filter.getOnlyAvailable()));
-        if (filter.getRangeStart() == null && filter.getRangeEnd() == null) {
-            specifications.add(eventAfterNow());
-        } else {
-            specifications.add(filter.getRangeStart() == null ? null : eventAfter(filter.getRangeStart()));
-            specifications.add(filter.getRangeEnd() == null ? null : eventBefore(filter.getRangeEnd()));
-        }
-        return specifications;
-    }
-
-    private Specification<Event> initiatorIdIn(List<Long> ids) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("initiator").get("id")).value(ids);
-    }
-
-    private Specification<Event> statesIn(List<State> states) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("state")).value(states);
-    }
-
-    private Specification<Event> catIdsIn(List<Long> ids) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("category").get("id")).value(ids);
-    }
-
-    private Specification<Event> annotationOrDescriptionLike(String text) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("annotation")), text),
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), text)
-        );
-    }
-
-    private Specification<Event> eventAfter(LocalDateTime startRange) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), startRange);
-    }
-
-    private Specification<Event> eventBefore(LocalDateTime endRange) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("eventDate"), endRange);
-    }
-
-    private Specification<Event> eventPaid(Boolean isPaid) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("paid"), isPaid);
-    }
-
-    private Specification<Event> handleOnlyAvailable(Boolean onlyAvailable) {
-        if (onlyAvailable) {
-            return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("confirmedRequests"),
-                    root.get("participantLimit"));
-        } else {
-            return null;
-        }
-    }
-
-    private Specification<Event> eventAfterNow() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"),
-                LocalDateTime.now());
-    }
-
-    private Specification<Event> eventIsPublished() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("state"), State.PUBLISHED);
-    }
-
     private void setViews(List<EventShortDto> eventShortDtoList) {
+        log.info("EventService: выполнение метода setViews");
         List<String> uris = new ArrayList<>();
         for (EventShortDto dto : eventShortDtoList) {
             uris.add("/events/" + dto.getId());
@@ -409,6 +402,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void createHit(HttpServletRequest request) {
+        log.info("EventService: выполнение метода createHit");
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
         EndpointRequestDto requestDto = new EndpointRequestDto();
         requestDto.setUri(request.getRequestURI());
@@ -416,5 +410,34 @@ public class EventServiceImpl implements EventService {
         requestDto.setApp("ewm-main-service");
         requestDto.setTimestamp(LocalDateTime.now().format(dateTimeFormatter));
         statsClient.create(requestDto);
+    }
+
+    private void setComments(Map<Long, List<Comment>> commentMap, EventShortDto eventShortDto) {
+        log.info("EventService: добавление комментариев к событию с id={}", eventShortDto.getId());
+        if (commentMap.isEmpty()) {
+            return;
+        }
+        if (commentMap.get(eventShortDto.getId()) == null) {
+            return;
+        }
+        List<CommentResultDto> eventComments = commentMap.get(eventShortDto.getId()).stream()
+                .map(CommentMapper::toCommentResultDto)
+                .collect(toList());
+        eventShortDto.setComments(eventComments);
+    }
+
+    private Comment findCommentByIdOrThrow(Long commentId) {
+        log.info("EventService: поиск комментария с id={}", commentId);
+        return commentRepository.findById(commentId).orElseThrow(() -> new NotFoundException(String.format(
+                "Comment with id=%d was not found", commentId)));
+    }
+
+    private void checkUserIsAuthor(Comment comment, Long userId) {
+        log.info("EventService: проверка является ли пользователь с id={} автором комментария с id={}",
+                userId, comment.getId());
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException(String.format(
+                    "Пользователь с id=%d не является автором комментария с id=%d", userId, comment.getId()));
+        }
     }
 }

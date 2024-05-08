@@ -1,5 +1,7 @@
 package ru.practicum.ewm.event.service;
 
+import ru.practicum.ewm.event.comment.dto.CommentResultDto;
+import ru.practicum.ewm.event.comment.dto.NewCommentDto;
 import ru.practicum.ewm.event.dto.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,4 +28,14 @@ public interface EventService {
                                                HttpServletRequest request);
 
     EventFullDto publicFindById(Long eventId, HttpServletRequest request);
+
+    CommentResultDto privateCreateComment(NewCommentDto newCommentDto, Long authorId, Long eventId);
+
+    CommentResultDto privateUpdateComment(NewCommentDto updateCommentDto, Long commentId, Long userId);
+
+    void privateDeleteComment(Long userId, Long commentId);
+
+    void adminDeleteComment(Long commentId);
+
+    CommentResultDto publicFindCommentById(Long commentId);
 }
