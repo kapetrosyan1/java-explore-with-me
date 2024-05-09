@@ -37,5 +37,7 @@ public interface EventService {
 
     void adminDeleteComment(Long commentId);
 
-    CommentResultDto publicFindCommentById(Long commentId);
+    List<CommentResultDto> privateFindAllUsersComments(Long commentId, int from, int size);
+
+    CommentResultDto adminFindCommentById(Long commentId);
 }

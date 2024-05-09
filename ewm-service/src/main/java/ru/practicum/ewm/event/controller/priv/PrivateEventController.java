@@ -95,6 +95,14 @@ public class PrivateEventController {
         return eventService.privateUpdateComment(newCommentDto, commentId, userId);
     }
 
+    @GetMapping("/comments")
+    public List<CommentResultDto> findAllUserComments(@PathVariable @Positive Long userId,
+                                                      @RequestParam(defaultValue = "0") int from,
+                                                      @RequestParam(defaultValue = "10") int size) {
+        log.info("PrivateEventController: GET запрос по endpoint /users/{}/events/comments", userId);
+        return eventService.privateFindAllUsersComments(userId, from, size);
+    }
+
     @DeleteMapping("/comments/delete/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCommentByAuthor(@PathVariable @Positive Long userId,

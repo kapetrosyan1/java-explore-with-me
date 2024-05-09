@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.event.comment.dto.CommentResultDto;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.service.EventService;
@@ -50,11 +49,5 @@ public class PublicEventController {
     public EventFullDto getEventById(@PathVariable @Positive Long id, HttpServletRequest request) {
         log.info("PublicEventController: GET запрос по endpoint /events/{}", id);
         return eventService.publicFindById(id, request);
-    }
-
-    @GetMapping("/comments/{commentId}")
-    public CommentResultDto getCommentById(@PathVariable @Positive Long commentId) {
-        log.info("PublicEventController: GET запрос по endpoint /events/comments/{}", commentId);
-        return eventService.publicFindCommentById(commentId);
     }
 }

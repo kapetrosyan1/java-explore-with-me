@@ -144,8 +144,13 @@ public class EventServiceImpl implements EventService {
         if (!eventPage.hasContent()) {
             return new ArrayList<>();
         }
+        List<Event> events = eventPage.getContent();
+        Map<Long, List<Comment>> eventCommentMap = commentRepository.findByEventIn(events).stream()
+                .collect(groupingBy(comment -> comment.getEvent().getId(), toList()));
+
         return eventPage.getContent().stream()
                 .map(EventMapper::toEventFullDto)
+                .peek(eventDto -> setCommentsToEventFullDto(eventCommentMap, eventDto))
                 .collect(toList());
     }
 
@@ -189,7 +194,7 @@ public class EventServiceImpl implements EventService {
         Map<Long, List<Comment>> eventCommentMap = commentRepository.findByEventIn(events).stream()
                 .collect(groupingBy(comment -> comment.getEvent().getId(), toList()));
 
-        List<EventShortDto> eventShortDtoList = eventPage.getContent().stream()
+        List<EventShortDto> eventShortDtoList = events.stream()
                 .map(EventMapper::toEventShortDto)
                 .peek(eventDto -> setComments(eventCommentMap, eventDto))
                 .collect(toList());
@@ -248,10 +253,17 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public CommentResultDto publicFindCommentById(Long commentId) {
-        log.info("EventService: удаление комментария с id={} администратором", commentId);
-        Comment comment = findCommentByIdOrThrow(commentId);
-        return CommentMapper.toCommentResultDto(comment);
+    public List<CommentResultDto> privateFindAllUsersComments(Long userId, int from, int size) {
+        log.info("EventService: поиск всех комментариев пользователя с id={}", userId);
+        User author = findUserByIdOrThrow(userId);
+        Pageable pageable = getPageRequest(from, size, null);
+        Page<Comment> commentsPage = commentRepository.findByAuthor(author, pageable);
+        if (!commentsPage.hasContent()) {
+            return new ArrayList<>();
+        }
+        return commentsPage.getContent().stream()
+                .map(CommentMapper::toCommentResultDto)
+                .collect(toList());
     }
 
     @Override
@@ -262,6 +274,14 @@ public class EventServiceImpl implements EventService {
         checkUserIsAuthor(comment, userId);
         comment.setText(updateCommentDto.getText());
         return CommentMapper.toCommentResultDto(commentRepository.save(comment));
+    }
+
+    @Override
+    public CommentResultDto adminFindCommentById(Long commentId) {
+        log.info("EventService: получение комментария с id={} администратором", commentId);
+        CommentResultDto comment = CommentMapper.toCommentResultDto(findCommentByIdOrThrow(commentId));
+        log.info("Комментарий {} найден", comment);
+        return comment;
     }
 
     private void checkInitiator(Event event, Long userId) {
@@ -424,6 +444,20 @@ public class EventServiceImpl implements EventService {
                 .map(CommentMapper::toCommentResultDto)
                 .collect(toList());
         eventShortDto.setComments(eventComments);
+    }
+
+    private void setCommentsToEventFullDto(Map<Long, List<Comment>> commentMap, EventFullDto eventFullDto) {
+        log.info("EventService: добавление комментариев к событию с id={}", eventFullDto.getId());
+        if (commentMap.isEmpty()) {
+            return;
+        }
+        if (commentMap.get(eventFullDto.getId()) == null) {
+            return;
+        }
+        List<CommentResultDto> eventComments = commentMap.get(eventFullDto.getId()).stream()
+                .map(CommentMapper::toCommentResultDto)
+                .collect(toList());
+        eventFullDto.setComments(eventComments);
     }
 
     private Comment findCommentByIdOrThrow(Long commentId) {

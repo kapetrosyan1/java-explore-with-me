@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.event.comment.dto.CommentResultDto;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.service.EventService;
@@ -39,6 +40,12 @@ public class AdminEventController {
                                                @RequestParam(defaultValue = "10") @Positive int size) {
         log.info("AdminEventController: GET запрос по endpoint /admin/events");
         return eventService.adminFindAllWithSpecs(users, states, categories, rangeStart, rangeEnd, from, size);
+    }
+
+    @GetMapping("/comments/{commentId}")
+    public CommentResultDto findCommentById(@PathVariable @Positive Long commentId) {
+        log.info("AdminEventController: GET запрос по endpoint /admin/events/comments/{}", commentId);
+        return eventService.adminFindCommentById(commentId);
     }
 
     @PatchMapping("/{eventId}")
