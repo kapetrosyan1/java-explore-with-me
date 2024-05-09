@@ -13,7 +13,7 @@ public class CommentMapper {
         log.info("CommentMapper: Конвертация Comment в CommentResultDto");
         CommentResultDto commentResultDto = new CommentResultDto();
         commentResultDto.setId(comment.getId());
-        commentResultDto.setText(commentResultDto.getText());
+        commentResultDto.setText(comment.getText());
         commentResultDto.setAuthorName(comment.getAuthor().getName());
         commentResultDto.setCreated(comment.getCreated());
         return commentResultDto;
