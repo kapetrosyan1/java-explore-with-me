@@ -1097,134 +1097,6 @@
 			"name": "Get Comments",
 			"item": [
 				{
-					"name": "Получение комментариев к событиям при поиске с возможностью фильтрации",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"    pm.response.to.be.withBody;\r",
-									"    pm.response.to.be.json;\r",
-									"});\r",
-									"\r",
-									"const source = pm.collectionVariables.get('response');\r",
-									"const target = pm.response.json()[0];\r",
-									"\r",
-									"pm.test(\"Событие должно содержать поле comments\", function () {\r",
-									"    pm.expect(target).to.have.property('comments');\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
-									"    pm.expect(target.comments[0].id).equal(source.id), 'Идентификатор комментария в ответе должен соотвтетсвовать идентификатору комментария в запросе';\r",
-									"    pm.expect(target.comments[0].authorName).equal(source.authorName), 'Имя автора комментария в ответе должно соответствовать имени автора в запросе';\r",
-									"    pm.expect(target.comments[0].text).equal(source.text), 'Текст комментария в ответе должен соответствовать тексту комментария в запросе';\r",
-									"    pm.expect(target.comments[0].created).equal(source.created), 'Время создания комментария в ответе должно соответствовать времени создания комментария в запросе';\r",
-									"    pm.expect(target.comments[1]).equal(undefined), 'У события должен быть только один комментарий';\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const main = async () => {\r",
-									"    const api = new API(pm);\r",
-									"    const rnd = new RandomUtils();\r",
-									"\r",
-									"    try {\r",
-									"        const user = await api.addUser(rnd.getUser());\r",
-									"        const category = await api.addCategory(rnd.getCategory());\r",
-									"        let event = await api.addEvent(user.id, rnd.getEvent(category.id));\r",
-									"        event = await api.publishEvent(event.id);\r",
-									"        pm.request.removeQueryParams(['text', 'categories', 'paid']);\r",
-									"        pm.request.addQueryParams([`text=` + event.annotation, 'categories=' + category.id, 'paid=' + event.paid]);\r",
-									"        const comment = await api.addComment(user.id, event.id, rnd.getComment());\r",
-									"        pm.collectionVariables.set('response', comment);\r",
-									"    } catch(err) {\r",
-									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
-									"    }\r",
-									"};\r",
-									"\r",
-									"const interval = setInterval(() => {}, 1000);\r",
-									"\r",
-									"setTimeout(async () => \r",
-									"    {\r",
-									"        try {\r",
-									"            // выполняем наш скрипт\r",
-									"            await main();\r",
-									"        } catch (e) {\r",
-									"            console.error(e);\r",
-									"        } finally {\r",
-									"            clearInterval(interval);\r",
-									"        }\r",
-									"    },  \r",
-									"    100 \r",
-									");"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/events?text=0&categories=0&paid=true&rangeStart=2022-01-06%2013%3A30%3A38&rangeEnd=2097-09-06%2013%3A30%3A38&onlyAvailable=false&sort=EVENT_DATE&from=0&size=1000",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"events"
-							],
-							"query": [
-								{
-									"key": "text",
-									"value": "0"
-								},
-								{
-									"key": "categories",
-									"value": "0"
-								},
-								{
-									"key": "paid",
-									"value": "true"
-								},
-								{
-									"key": "rangeStart",
-									"value": "2022-01-06%2013%3A30%3A38"
-								},
-								{
-									"key": "rangeEnd",
-									"value": "2097-09-06%2013%3A30%3A38"
-								},
-								{
-									"key": "onlyAvailable",
-									"value": "false"
-								},
-								{
-									"key": "sort",
-									"value": "EVENT_DATE"
-								},
-								{
-									"key": "from",
-									"value": "0"
-								},
-								{
-									"key": "size",
-									"value": "1000"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Получение всех комментариев пользователя",
 					"event": [
 						{
@@ -2072,7 +1944,7 @@
 					"\r",
 					"    getCategory() {\r",
 					"        return {\r",
-					"            name: pm.variables.replaceIn('{{$randomWord}}') + Math.floor(Math.random() * 100).toString()\r",
+					"            name: pm.variables.replaceIn('{{$randomWord}}') + Math.floor(Math.random() * 10000 * Math.random()).toString()\r",
 					"        };\r",
 					"    }\r",
 					"\r",
@@ -2154,6 +2026,11 @@
 		},
 		{
 			"key": "response",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "categoryId",
 			"value": "",
 			"type": "string"
 		}
