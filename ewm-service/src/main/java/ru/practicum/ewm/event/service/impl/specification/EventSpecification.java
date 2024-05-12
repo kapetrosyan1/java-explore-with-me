@@ -75,9 +75,8 @@ public class EventSpecification {
         if (onlyAvailable) {
             return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("confirmedRequests"),
                     root.get("participantLimit"));
-        } else {
-            return null;
         }
+        return null;
     }
 
     private Specification<Event> eventAfterNow() {
