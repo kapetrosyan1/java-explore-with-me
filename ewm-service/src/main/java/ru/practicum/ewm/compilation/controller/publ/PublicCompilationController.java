@@ -29,7 +29,7 @@ public class PublicCompilationController {
 
     @GetMapping("/{compId}")
     public CompilationDto findById(@PathVariable @Positive Long compId) {
-        log.info("PublicCompilationController: GET запрос по endpoint /compilations/{compId}");
+        log.info("PublicCompilationController: GET запрос по endpoint /compilations/{}", compId);
         return compilationService.publicFindCompilationById(compId);
     }
 }

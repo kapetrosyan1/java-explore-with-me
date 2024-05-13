@@ -31,14 +31,14 @@ public class AdminCompilationController {
     @DeleteMapping("/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable @Positive Long compId) {
-        log.info("AdminCompilationController: DELETE запрос по endpoint /admin/compilations/{compId}");
+        log.info("AdminCompilationController: DELETE запрос по endpoint /admin/compilations/{}", compId);
         compilationService.adminDeleteCompilation(compId);
     }
 
     @PatchMapping("/{compId}")
     public CompilationDto update(@RequestBody @Valid UpdateCompilationRequest request,
                                  @PathVariable @Positive Long compId) {
-        log.info("AdminCompilationController: PATCH запрос по endpoint /admin/compilations/{compId}");
+        log.info("AdminCompilationController: PATCH запрос по endpoint /admin/compilations/{}", compId);
         return compilationService.adminUpdateCompilation(request, compId);
     }
 }

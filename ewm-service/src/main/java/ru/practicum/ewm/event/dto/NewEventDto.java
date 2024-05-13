@@ -18,7 +18,7 @@ public class NewEventDto {
     @NotNull
     private Long category;
     @NotBlank
-    @Size(min = 20, max = 7000, message = "длина аннотации не может быть меньше 20 и больше 7000 символов")
+    @Size(min = 20, max = 7000, message = "длина описания не может быть меньше 20 и больше 7000 символов")
     private String description;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_FORMAT)
     private LocalDateTime eventDate;
