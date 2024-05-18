@@ -53,7 +53,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional
     public void adminDeleteCompilation(Long compId) {
-        log.info("CompilationService ADMIN: удаление подборки событий с id={compId}");
+        log.info("CompilationService ADMIN: удаление подборки событий с id={}", compId);
         findCompOrThrow(compId);
         compilationRepository.deleteById(compId);
     }
@@ -61,7 +61,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional
     public CompilationDto adminUpdateCompilation(UpdateCompilationRequest request, Long compId) {
-        log.info("CompilationService ADMIN: обновление подборки событий с id={compId}");
+        log.info("CompilationService ADMIN: обновление подборки событий с id={}", compId);
         Compilation compilation = findCompOrThrow(compId);
         updateCompilation(compilation, request);
         return CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
@@ -69,7 +69,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public List<CompilationDto> publicFindCompilations(Boolean pinned, int from, int size) {
-        log.info("CompilationService PUBLIC: получение подборки событий с id={compId}");
+        log.info("CompilationService PUBLIC: получение подборки событий, pinned={}, from={}, size={}", pinned, from, size);
         int page = from / size;
         Sort sort = Sort.by(ASC, "id");
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -89,7 +89,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto publicFindCompilationById(Long compId) {
-        log.info("CompilationService PUBLIC: обновление подборки событий с id={compId}");
+        log.info("CompilationService PUBLIC: получение подборки событий с id={}", compId);
         Compilation compilation = findCompOrThrow(compId);
         return CompilationMapper.toCompilationDto(compilation);
     }
